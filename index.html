@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Skycolor Dashboard v9</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.5.1"></script>
+<style>
+:root{--bg:#f0f2f5;--card:#fff;--hdr:linear-gradient(135deg,#0f172a,#1e293b);--txt:#1c1e21;--txt2:#65676b;--accent:#1877f2;--pos:#22c55e;--neg:#ef4444;--warn:#f59e0b;--info:#3b82f6;--gap:14px;--r:10px}
+*{margin:0;padding:0;box-sizing:border-box}body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:var(--bg);color:var(--txt);font-size:13px}
+.dash{max-width:1480px;margin:0 auto;padding:var(--gap)}
+.hdr{background:var(--hdr);color:#fff;padding:20px 28px;border-radius:var(--r);margin-bottom:var(--gap);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px}
+.hdr h1{font-size:20px;font-weight:700}.hdr .sub{font-size:12px;opacity:.65;margin-top:3px}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(155px,1fr));gap:var(--gap);margin-bottom:var(--gap)}
+.kpi{background:var(--card);border-radius:var(--r);padding:16px 18px;box-shadow:0 1px 2px rgba(0,0,0,.05);position:relative}
+.kpi .lb{font-size:10px;color:var(--txt2);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px}
+.kpi .val{font-size:22px;font-weight:700}.kpi .s{font-size:10px;color:var(--txt2);margin-top:2px}
+.kpi .hi{position:absolute;top:8px;right:10px;width:16px;height:16px;border-radius:50%;background:#e4e6eb;color:var(--txt2);font-size:9px;display:flex;align-items:center;justify-content:center;cursor:help;font-weight:700}
+.kpi .hi:hover+.tt,.kpi .tt:hover{display:block}
+.kpi .tt{display:none;position:absolute;top:28px;right:0;background:#1e293b;color:#fff;padding:8px 12px;border-radius:6px;font-size:11px;width:230px;z-index:100;line-height:1.4;box-shadow:0 4px 12px rgba(0,0,0,.2)}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:var(--gap);margin-bottom:var(--gap)}.row1{margin-bottom:var(--gap)}
+.box{background:var(--card);border-radius:var(--r);padding:18px;box-shadow:0 1px 2px rgba(0,0,0,.05)}
+.box h3{font-size:13px;color:var(--txt2);margin-bottom:12px;font-weight:600}
+.box canvas{width:100%!important;height:260px!important}
+.tabs{display:flex;gap:4px;margin-bottom:var(--gap);flex-wrap:wrap}
+.tab{padding:8px 18px;border:none;border-radius:var(--r) var(--r) 0 0;font-size:12px;font-weight:600;cursor:pointer;background:var(--card);color:var(--txt2);transition:.2s;box-shadow:0 1px 2px rgba(0,0,0,.05)}
+.tab.on{background:var(--accent);color:#fff}
+.tc{display:none}.tc.on{display:block}
+table{width:100%;border-collapse:collapse;font-size:12px}
+th{background:#f8f9fa;padding:8px 10px;text-align:left;font-weight:600;border-bottom:2px solid #e4e6eb;white-space:nowrap}
+td{padding:7px 10px;border-bottom:1px solid #f0f0f0}.num{text-align:right;font-variant-numeric:tabular-nums}
+tr:hover{background:#f8fafc}
+.good{color:var(--pos);font-weight:600}.bad{color:var(--neg);font-weight:600}.warn{color:var(--warn);font-weight:600}
+.tbl-wrap{overflow-x:auto}
+.ins{background:var(--card);border-radius:var(--r);padding:16px 20px;margin-bottom:10px;border-left:4px solid var(--info);box-shadow:0 1px 2px rgba(0,0,0,.05)}
+.ins.warning{border-left-color:var(--warn)}.ins.negative{border-left-color:var(--neg)}.ins.positive{border-left-color:var(--pos)}
+.it{font-weight:700;margin-bottom:4px}.id{font-size:12px;color:var(--txt2);margin-bottom:6px}.ia{font-size:12px;font-weight:600;color:var(--accent)}
+.glossary{background:var(--card);border-radius:var(--r);padding:20px 24px;box-shadow:0 1px 2px rgba(0,0,0,.05);margin-bottom:var(--gap)}
+.glossary h3{font-size:14px;font-weight:700;margin-bottom:14px}
+.glossary-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px}
+.gterm{display:flex;gap:10px;padding:10px 14px;background:#f8fafc;border-radius:8px;border-left:3px solid var(--accent)}
+.gterm .abbr{font-weight:700;font-size:12px;min-width:90px;color:var(--accent)}.gterm .def{font-size:12px;line-height:1.45}
+.fv{display:flex;align-items:center;justify-content:center;gap:6px;padding:16px 0;margin-bottom:16px;flex-wrap:wrap}
+.fs{text-align:center;padding:10px 14px;border-radius:8px;min-width:100px}
+.fs .sn{font-size:11px;font-weight:700;margin-bottom:3px}.fs .sv{font-size:18px;font-weight:800}.fs .sd{font-size:9px;color:var(--txt2);margin-top:2px}
+.fa{font-size:18px;color:var(--txt2);display:flex;flex-direction:column;align-items:center}
+.fa .rt{font-size:11px;font-weight:700;margin-top:2px}
+.fa .rt.ok{color:var(--pos)}.fa .rt.wn{color:var(--warn)}.fa .rt.bd{color:var(--neg)}
+.month-filter{display:flex;gap:4px;margin-bottom:12px;flex-wrap:wrap}
+.month-filter button{padding:5px 14px;border:1px solid #e4e6eb;border-radius:6px;font-size:11px;font-weight:600;cursor:pointer;background:#fff;color:var(--txt2);transition:.2s}
+.month-filter button.on{background:var(--accent);color:#fff;border-color:var(--accent)}
+@media(max-width:768px){.row2{grid-template-columns:1fr}.kpis{grid-template-columns:repeat(2,1fr)}.glossary-grid{grid-template-columns:1fr}.fv{flex-direction:column}.fa{transform:rotate(90deg)}}
+</style>
+</head>
+<body>
+<div class="dash">
+  <div class="hdr">
+    <div><h1>Skycolor &mdash; Dashboard de Performance &amp; Funnel</h1>
+    <div class="sub">Meta Ads + GA4 &bull; 1 Dic 2025 &ndash; 14 Mar 2026 &bull; Actualizado: 14 Mar 2026</div></div>
+  </div>
+
+  <div class="kpis">
+    <div class="kpi"><div class="lb">Inversi&oacute;n Meta</div><div class="val">$2.1M</div><div class="s">Total periodo</div><div class="hi">?</div><div class="tt">Gasto total en Meta Ads durante el periodo.</div></div>
+    <div class="kpi"><div class="lb">Ingresos GA4</div><div class="val">$10.1M</div><div class="s">Ecommerce purchases</div><div class="hi">?</div><div class="tt">Ingresos totales de compras ecommerce registrados en GA4.</div></div>
+    <div class="kpi"><div class="lb">ROAS GA4</div><div class="val">4.85x</div><div class="s">Revenue / Spend</div><div class="hi">?</div><div class="tt">Return on Ad Spend: ingresos GA4 dividido inversi&oacute;n Meta.</div></div>
+    <div class="kpi"><div class="lb">Sesiones</div><div class="val">29.1K</div><div class="s">GA4 total</div><div class="hi">?</div><div class="tt">Total de sesiones registradas en GA4.</div></div>
+    <div class="kpi"><div class="lb">Compras GA4</div><div class="val">228.0</div><div class="s">Ecommerce</div><div class="hi">?</div><div class="tt">N&uacute;mero total de compras ecommerce en GA4.</div></div>
+    <div class="kpi"><div class="lb">CVR</div><div class="val">0.78%</div><div class="s">Compras/Sesiones</div><div class="hi">?</div><div class="tt">Tasa de conversi&oacute;n: compras dividido sesiones.</div></div>
+    <div class="kpi"><div class="lb">CPC Promedio</div><div class="val">$73</div><div class="s">Meta Ads</div><div class="hi">?</div><div class="tt">Costo promedio por clic en Meta Ads.</div></div>
+    <div class="kpi"><div class="lb">CTR</div><div class="val">3.47%</div><div class="s">Meta Ads</div><div class="hi">?</div><div class="tt">Click-through rate: clics dividido impresiones.</div></div>
+    <div class="kpi"><div class="lb">Costo / Compra</div><div class="val">$9.2K</div><div class="s">Inv / Compras GA4</div><div class="hi">?</div><div class="tt">Inversi&oacute;n total dividido n&uacute;mero de compras GA4.</div></div>
+  </div>
+
+  <div class="tabs">
+    <button class="tab on" onclick="showTab('overview',this)">Vista General</button>
+    <button class="tab" onclick="showTab('funnel',this)">Funnel por Mes</button>
+    <button class="tab" onclick="showTab('channels',this)">Canales GA4</button>
+    <button class="tab" onclick="showTab('campaigns',this)">Campa&ntilde;as</button>
+    <button class="tab" onclick="showTab('adsets',this)">Ad Sets</button>
+    <button class="tab" onclick="showTab('glossary',this)">Glosario</button>
+    <button class="tab" onclick="showTab('insights',this)">Insights</button>
+  </div>
+
+  <!-- TAB: Vista General -->
+  <div class="tc on" id="tab-overview">
+    <div class="row2">
+      <div class="box"><h3>Inversi&oacute;n Meta vs Ingresos GA4 + Ratio Inv/Revenue</h3><canvas id="ch-spend-rev"></canvas></div>
+      <div class="box"><h3>Sesiones vs Compras + Tasa de Conversi&oacute;n</h3><canvas id="ch-sess-purch"></canvas></div>
+    </div>
+    <div class="row2">
+      <div class="box"><h3>Dispositivos: Sesiones, Compras y CVR</h3><canvas id="ch-device"></canvas></div>
+      <div class="box"><h3>Distribuci&oacute;n Ingresos por Canal</h3><canvas id="ch-channel-pie"></canvas></div>
+    </div>
+  </div>
+
+  <!-- TAB: Funnel -->
+  <div class="tc" id="tab-funnel">
+    <div class="box row1"><h3>Embudo de Conversi&oacute;n Meta &mdash; Totales</h3>
+      <div class="fv">
+        <div class="fs" style="background:#3b82f622"><div class="sn">Landing Page Views</div><div class="sv" style="color:#3b82f6">9,010</div></div>
+        <div class="fa">&rarr;<div class="rt ok">73.5%</div></div>
+        <div class="fs" style="background:#6366f122"><div class="sn">View Content</div><div class="sv" style="color:#6366f1">6,622</div></div>
+        <div class="fa">&rarr;<div class="rt wn">21.2%</div></div>
+        <div class="fs" style="background:#f59e0b22"><div class="sn">Add to Cart</div><div class="sv" style="color:#f59e0b">1,404</div></div>
+        <div class="fa">&rarr;<div class="rt wn">15.7%</div></div>
+        <div class="fs" style="background:#ef444422"><div class="sn">Initiate Checkout</div><div class="sv" style="color:#ef4444">221</div></div>
+        <div class="fa">&rarr;<div class="rt ok">38.9%</div></div>
+        <div class="fs" style="background:#22c55e22"><div class="sn">Purchases</div><div class="sv" style="color:#22c55e">86</div></div>
+      </div>
+    </div>
+    <div class="row2">
+      <div class="box"><h3>Volumen por Paso (mensual)</h3><canvas id="ch-funnel-vol"></canvas></div>
+      <div class="box"><h3>Tasas de Conversi&oacute;n entre Pasos</h3><canvas id="ch-funnel-rates"></canvas></div>
+    </div>
+  </div>
+
+  <!-- TAB: Canales GA4 -->
+  <div class="tc" id="tab-channels">
+    <div class="month-filter" id="ch-month-filter">
+      <button class="on" onclick="filterChannels('all',this)">Todos</button>
+      <button onclick="filterChannels('12',this)">Dic 2025</button>
+      <button onclick="filterChannels('01',this)">Ene 2026</button>
+      <button onclick="filterChannels('02',this)">Feb 2026</button>
+      <button onclick="filterChannels('03',this)">Mar 2026</button>
+    </div>
+    <div class="box row1"><div class="tbl-wrap"><table id="channel-table"><thead><tr><th>Canal</th><th class="num">Sesiones</th><th class="num">Engaged</th><th class="num">Compras</th><th class="num">Revenue</th><th class="num">CVR</th></tr></thead><tbody id="ch-tbody"></tbody></table></div></div>
+    <div class="row2">
+      <div class="box"><h3>Sesiones por Canal (Evoluci&oacute;n Mensual)</h3><canvas id="ch-channel-sessions"></canvas></div>
+      <div class="box"><h3>Revenue por Canal (Evoluci&oacute;n Mensual)</h3><canvas id="ch-channel-revenue"></canvas></div>
+    </div>
+  </div>
+
+  <!-- TAB: Campañas -->
+  <div class="tc" id="tab-campaigns">
+    <div class="month-filter" id="camp-month-filter">
+      <button class="on" onclick="filterCampaigns('all',this)">Todos</button>
+      <button onclick="filterCampaigns('12',this)">Dic 2025</button>
+      <button onclick="filterCampaigns('01',this)">Ene 2026</button>
+      <button onclick="filterCampaigns('02',this)">Feb 2026</button>
+      <button onclick="filterCampaigns('03',this)">Mar 2026</button>
+    </div>
+    <div class="box row1"><div class="tbl-wrap"><table id="campaign-table"><thead><tr><th>Campa&ntilde;a</th><th class="num">Inversi&oacute;n</th><th class="num">Impresiones</th><th class="num">Clics</th><th class="num">CPC</th><th class="num">Compras</th><th class="num">Revenue</th><th class="num">ROAS</th></tr></thead><tbody id="camp-tbody"></tbody></table></div></div>
+    <div class="box row1"><h3>ROAS por Campa&ntilde;a (Evoluci&oacute;n Mensual)</h3><canvas id="ch-roas-evolution"></canvas></div>
+  </div>
+
+  <!-- TAB: Ad Sets -->
+  <div class="tc" id="tab-adsets">
+    <div class="row2">
+      <div class="box"><h3>Top 10 Ad Sets por Inversi&oacute;n</h3><canvas id="ch-adset-spend"></canvas></div>
+      <div class="box"><h3>Top 10 Ad Sets: CTR</h3><canvas id="ch-adset-ctr"></canvas></div>
+    </div>
+    <div class="box row1"><div class="tbl-wrap"><table><thead><tr><th>Ad Set</th><th>Campa&ntilde;a</th><th class="num">Inversi&oacute;n</th><th class="num">Impresiones</th><th class="num">Clics</th><th class="num">CPC</th><th class="num">CTR</th></tr></thead><tbody id="adset-tbody"></tbody></table></div></div>
+  </div>
+
+  <!-- TAB: Glosario -->
+  <div class="tc" id="tab-glossary">
+    <div class="glossary"><h3>Glosario de M&eacute;tricas</h3>
+    <div class="glossary-grid">
+      <div class="gterm"><div class="abbr">Inversi&oacute;n</div><div class="def">Monto total gastado en publicidad en Meta Ads durante el periodo seleccionado. Se expresa en pesos argentinos (ARS).</div></div>
+      <div class="gterm"><div class="abbr">Ingresos GA4</div><div class="def">Revenue total de compras ecommerce registradas en Google Analytics 4. Incluye todas las transacciones completadas.</div></div>
+      <div class="gterm"><div class="abbr">ROAS</div><div class="def">Return on Ad Spend. Se calcula dividiendo los ingresos totales por la inversi&oacute;n publicitaria. Un ROAS de 5x significa que por cada $1 invertido se generaron $5 de ingreso.</div></div>
+      <div class="gterm"><div class="abbr">Sesiones</div><div class="def">N&uacute;mero de visitas al sitio web registradas en GA4. Una sesi&oacute;n se inicia cuando un usuario accede al sitio.</div></div>
+      <div class="gterm"><div class="abbr">Engaged Sessions</div><div class="def">Sesiones comprometidas: aquellas que duraron m&aacute;s de 10 segundos, tuvieron un evento de conversi&oacute;n o tuvieron 2+ vistas de p&aacute;gina.</div></div>
+      <div class="gterm"><div class="abbr">CVR</div><div class="def">Conversion Rate (Tasa de Conversi&oacute;n). Porcentaje de sesiones que resultan en una compra. Se calcula: (Compras / Sesiones) &times; 100.</div></div>
+      <div class="gterm"><div class="abbr">CPC</div><div class="def">Cost Per Click. Costo promedio por cada clic en los anuncios de Meta. Se calcula: Inversi&oacute;n / Clics.</div></div>
+      <div class="gterm"><div class="abbr">CTR</div><div class="def">Click-Through Rate. Porcentaje de impresiones que generaron un clic. Se calcula: (Clics / Impresiones) &times; 100.</div></div>
+      <div class="gterm"><div class="abbr">CPM</div><div class="def">Cost Per Mille. Costo por cada 1,000 impresiones del anuncio. Se calcula: (Inversi&oacute;n / Impresiones) &times; 1000.</div></div>
+      <div class="gterm"><div class="abbr">Impresiones</div><div class="def">Cantidad de veces que los anuncios fueron mostrados en pantalla a los usuarios.</div></div>
+      <div class="gterm"><div class="abbr">Alcance (Reach)</div><div class="def">N&uacute;mero de personas &uacute;nicas que vieron el anuncio al menos una vez.</div></div>
+      <div class="gterm"><div class="abbr">Landing Page View</div><div class="def">Evento de Meta que registra cuando un usuario hace clic y la p&aacute;gina de destino se carga completamente.</div></div>
+      <div class="gterm"><div class="abbr">View Content</div><div class="def">Evento del pixel de Meta que se dispara cuando un usuario ve una p&aacute;gina de producto o contenido clave.</div></div>
+      <div class="gterm"><div class="abbr">Add to Cart</div><div class="def">Evento que se dispara cuando un usuario agrega un producto al carrito de compras.</div></div>
+      <div class="gterm"><div class="abbr">Initiate Checkout</div><div class="def">Evento que se dispara cuando un usuario inicia el proceso de pago/checkout.</div></div>
+      <div class="gterm"><div class="abbr">Purchase</div><div class="def">Evento de compra completada. En Meta, trackea conversiones atribuidas a los anuncios con ventana de atribuci&oacute;n 7d click / 1d view.</div></div>
+      <div class="gterm"><div class="abbr">Costo/Compra</div><div class="def">Inversi&oacute;n total dividida por el n&uacute;mero de compras GA4. Indica cu&aacute;nto cuesta adquirir cada venta.</div></div>
+      <div class="gterm"><div class="abbr">Ad Set</div><div class="def">Conjunto de anuncios dentro de una campa&ntilde;a de Meta. Define el p&uacute;blico objetivo, ubicaci&oacute;n, presupuesto y programaci&oacute;n.</div></div>
+      <div class="gterm"><div class="abbr">Canal (GA4)</div><div class="def">Agrupaci&oacute;n de fuentes de tr&aacute;fico en GA4: Direct, Organic Search, Organic Social, Paid Social, Referral, etc.</div></div>
+    </div></div>
+  </div>
+
+  <!-- TAB: Insights -->
+  <div class="tc" id="tab-insights">
+    <div id="insights-container"></div>
+  </div>
+</div>
+
+<script>
+// ─── Data ───
+const spendRevData = [{"month": "Dic 2025", "spend": 705680, "revenue": 5211866, "ratio": 13.54}, {"month": "Ene 2026", "spend": 429746, "revenue": 1693752, "ratio": 25.37}, {"month": "Feb 2026", "spend": 740175, "revenue": 2972709, "ratio": 24.9}, {"month": "Mar 2026", "spend": 210834, "revenue": 233943, "ratio": 90.12}];
+const sessPurchData = [{"month": "Dic 2025", "sessions": 10403.0, "purchases": 113.0, "cvr": 1.09}, {"month": "Ene 2026", "sessions": 6705.0, "purchases": 44.0, "cvr": 0.66}, {"month": "Feb 2026", "sessions": 9495.0, "purchases": 65.0, "cvr": 0.68}, {"month": "Mar 2026", "sessions": 2461.0, "purchases": 6.0, "cvr": 0.24}];
+const deviceData = [{"device": "Mobile", "sessions": 25446.0, "purchases": 194.0, "cvr": 0.76, "revenue": 8563977}, {"device": "Desktop", "sessions": 3271.0, "purchases": 33.0, "cvr": 1.01, "revenue": 1511291}, {"device": "Tablet", "sessions": 143.0, "purchases": 1.0, "cvr": 0.7, "revenue": 37000}];
+const channelPieData = [{"name": "Direct", "revenue": 3540453}, {"name": "Organic Search", "revenue": 3012033}, {"name": "Organic Social", "revenue": 2304271}, {"name": "Unassigned", "revenue": 981808}, {"name": "Paid Social", "revenue": 223747}, {"name": "Referral", "revenue": 37373}, {"name": "Organic Shopping", "revenue": 12584}];
+const monthlyFunnel = [{"month": "Dic 2025", "lpv": 2272.0, "vc": 1331.0, "atc": 412.0, "ic": 106.0, "purch": 36.0}, {"month": "Ene 2026", "lpv": 1848.0, "vc": 1601.0, "atc": 454.0, "ic": 37.0, "purch": 17.0}, {"month": "Feb 2026", "lpv": 3964.0, "vc": 2791.0, "atc": 440.0, "ic": 64.0, "purch": 31.0}, {"month": "Mar 2026", "lpv": 926.0, "vc": 899.0, "atc": 98.0, "ic": 14.0, "purch": 2.0}];
+const channelTable = [{"name": "Direct", "sessions": 3209.0, "engaged": 1443.0, "purchases": 72.0, "revenue": 3540453, "cvr": 2.24, "monthly": {"12": {"sessions": 1271.0, "engaged": 675.0, "purchases": 45.0, "revenue": 2378659}, "01": {"sessions": 1059.0, "engaged": 328.0, "purchases": 8.0, "revenue": 245380}, "02": {"sessions": 680.0, "engaged": 340.0, "purchases": 16.0, "revenue": 796871}, "03": {"sessions": 199.0, "engaged": 100.0, "purchases": 3.0, "revenue": 119543}}}, {"name": "Organic Search", "sessions": 3991.0, "engaged": 2921.0, "purchases": 73.0, "revenue": 3012033, "cvr": 1.83, "monthly": {"12": {"sessions": 1023.0, "engaged": 772.0, "purchases": 28.0, "revenue": 994418}, "01": {"sessions": 1151.0, "engaged": 861.0, "purchases": 16.0, "revenue": 685079}, "02": {"sessions": 1330.0, "engaged": 973.0, "purchases": 29.0, "revenue": 1332536}, "03": {"sessions": 487.0, "engaged": 315.0, "purchases": 0.0, "revenue": 0}}}, {"name": "Organic Social", "sessions": 10293.0, "engaged": 7745.0, "purchases": 52.0, "revenue": 2304271, "cvr": 0.51, "monthly": {"12": {"sessions": 4896.0, "engaged": 3680.0, "purchases": 27.0, "revenue": 1291575}, "01": {"sessions": 2389.0, "engaged": 1881.0, "purchases": 10.0, "revenue": 362534}, "02": {"sessions": 2584.0, "engaged": 1868.0, "purchases": 14.0, "revenue": 606663}, "03": {"sessions": 424.0, "engaged": 316.0, "purchases": 1.0, "revenue": 43500}}}, {"name": "Unassigned", "sessions": 6074.0, "engaged": 2868.0, "purchases": 24.0, "revenue": 981808, "cvr": 0.4, "monthly": {"12": {"sessions": 3078.0, "engaged": 1414.0, "purchases": 13.0, "revenue": 547214}, "01": {"sessions": 1913.0, "engaged": 943.0, "purchases": 8.0, "revenue": 355376}, "02": {"sessions": 972.0, "engaged": 490.0, "purchases": 2.0, "revenue": 51318}, "03": {"sessions": 111.0, "engaged": 21.0, "purchases": 1.0, "revenue": 27900}}}, {"name": "Paid Social", "sessions": 4756.0, "engaged": 1542.0, "purchases": 4.0, "revenue": 223747, "cvr": 0.08, "monthly": {"12": {"sessions": 0, "engaged": 0, "purchases": 0, "revenue": 0}, "01": {"sessions": 0, "engaged": 0, "purchases": 0, "revenue": 0}, "02": {"sessions": 3653.0, "engaged": 1111.0, "purchases": 3.0, "revenue": 180747}, "03": {"sessions": 1103.0, "engaged": 431.0, "purchases": 1.0, "revenue": 43000}}}, {"name": "Referral", "sessions": 486.0, "engaged": 326.0, "purchases": 1.0, "revenue": 37373, "cvr": 0.21, "monthly": {"12": {"sessions": 106.0, "engaged": 61.0, "purchases": 0.0, "revenue": 0}, "01": {"sessions": 159.0, "engaged": 104.0, "purchases": 1.0, "revenue": 37373}, "02": {"sessions": 162.0, "engaged": 121.0, "purchases": 0.0, "revenue": 0}, "03": {"sessions": 59.0, "engaged": 40.0, "purchases": 0.0, "revenue": 0}}}, {"name": "Organic Shopping", "sessions": 164.0, "engaged": 107.0, "purchases": 2.0, "revenue": 12584, "cvr": 1.22, "monthly": {"12": {"sessions": 29.0, "engaged": 20.0, "purchases": 0.0, "revenue": 0}, "01": {"sessions": 34.0, "engaged": 26.0, "purchases": 1.0, "revenue": 8010}, "02": {"sessions": 83.0, "engaged": 53.0, "purchases": 1.0, "revenue": 4574}, "03": {"sessions": 18.0, "engaged": 8.0, "purchases": 0.0, "revenue": 0}}}, {"name": "Paid Other", "sessions": 75.0, "engaged": 22.0, "purchases": 0.0, "revenue": 0, "cvr": 0.0, "monthly": {"12": {"sessions": 0, "engaged": 0, "purchases": 0, "revenue": 0}, "01": {"sessions": 0, "engaged": 0, "purchases": 0, "revenue": 0}, "02": {"sessions": 16.0, "engaged": 5.0, "purchases": 0.0, "revenue": 0}, "03": {"sessions": 59.0, "engaged": 17.0, "purchases": 0.0, "revenue": 0}}}, {"name": "Paid Search", "sessions": 15.0, "engaged": 0.0, "purchases": 0.0, "revenue": 0, "cvr": 0.0, "monthly": {"12": {"sessions": 0, "engaged": 0, "purchases": 0, "revenue": 0}, "01": {"sessions": 0, "engaged": 0, "purchases": 0, "revenue": 0}, "02": {"sessions": 15.0, "engaged": 0.0, "purchases": 0.0, "revenue": 0}, "03": {"sessions": 0, "engaged": 0, "purchases": 0, "revenue": 0}}}, {"name": "Cross-network", "sessions": 1.0, "engaged": 0.0, "purchases": 0.0, "revenue": 0, "cvr": 0.0, "monthly": {"12": {"sessions": 0, "engaged": 0, "purchases": 0, "revenue": 0}, "01": {"sessions": 0, "engaged": 0, "purchases": 0, "revenue": 0}, "02": {"sessions": 0, "engaged": 0, "purchases": 0, "revenue": 0}, "03": {"sessions": 1.0, "engaged": 0.0, "purchases": 0.0, "revenue": 0}}}];
+const channelMonthly = {"Direct": [{"month": "Dic 2025", "sessions": 1271.0, "revenue": 2378659}, {"month": "Ene 2026", "sessions": 1059.0, "revenue": 245380}, {"month": "Feb 2026", "sessions": 680.0, "revenue": 796871}, {"month": "Mar 2026", "sessions": 199.0, "revenue": 119543}], "Organic Search": [{"month": "Dic 2025", "sessions": 1023.0, "revenue": 994418}, {"month": "Ene 2026", "sessions": 1151.0, "revenue": 685079}, {"month": "Feb 2026", "sessions": 1330.0, "revenue": 1332536}, {"month": "Mar 2026", "sessions": 487.0, "revenue": 0}], "Organic Social": [{"month": "Dic 2025", "sessions": 4896.0, "revenue": 1291575}, {"month": "Ene 2026", "sessions": 2389.0, "revenue": 362534}, {"month": "Feb 2026", "sessions": 2584.0, "revenue": 606663}, {"month": "Mar 2026", "sessions": 424.0, "revenue": 43500}], "Unassigned": [{"month": "Dic 2025", "sessions": 3078.0, "revenue": 547214}, {"month": "Ene 2026", "sessions": 1913.0, "revenue": 355376}, {"month": "Feb 2026", "sessions": 972.0, "revenue": 51318}, {"month": "Mar 2026", "sessions": 111.0, "revenue": 27900}], "Paid Social": [{"month": "Dic 2025", "sessions": 0, "revenue": 0}, {"month": "Ene 2026", "sessions": 0, "revenue": 0}, {"month": "Feb 2026", "sessions": 3653.0, "revenue": 180747}, {"month": "Mar 2026", "sessions": 1103.0, "revenue": 43000}], "Referral": [{"month": "Dic 2025", "sessions": 106.0, "revenue": 0}, {"month": "Ene 2026", "sessions": 159.0, "revenue": 37373}, {"month": "Feb 2026", "sessions": 162.0, "revenue": 0}, {"month": "Mar 2026", "sessions": 59.0, "revenue": 0}], "Organic Shopping": [{"month": "Dic 2025", "sessions": 29.0, "revenue": 0}, {"month": "Ene 2026", "sessions": 34.0, "revenue": 8010}, {"month": "Feb 2026", "sessions": 83.0, "revenue": 4574}, {"month": "Mar 2026", "sessions": 18.0, "revenue": 0}], "Paid Other": [{"month": "Dic 2025", "sessions": 0, "revenue": 0}, {"month": "Ene 2026", "sessions": 0, "revenue": 0}, {"month": "Feb 2026", "sessions": 16.0, "revenue": 0}, {"month": "Mar 2026", "sessions": 59.0, "revenue": 0}], "Paid Search": [{"month": "Dic 2025", "sessions": 0, "revenue": 0}, {"month": "Ene 2026", "sessions": 0, "revenue": 0}, {"month": "Feb 2026", "sessions": 15.0, "revenue": 0}, {"month": "Mar 2026", "sessions": 0, "revenue": 0}], "Cross-network": [{"month": "Dic 2025", "sessions": 0, "revenue": 0}, {"month": "Ene 2026", "sessions": 0, "revenue": 0}, {"month": "Feb 2026", "sessions": 0, "revenue": 0}, {"month": "Mar 2026", "sessions": 1.0, "revenue": 0}]};
+const campaignTable = [{"name": "EON_LAL_Compras", "spend": 1135493, "impressions": 327906, "clicks": 10159, "cpc": 112, "purchases": 64.0, "revenue": 2765441, "roas": 2.44, "monthly": {"12": {"spend": 565393, "clicks": 4319, "purchases": 36.0, "revenue": 1507240, "roas": 2.67}, "01": {"spend": 375918, "clicks": 3877, "purchases": 17.0, "revenue": 831437, "roas": 2.21}, "02": {"spend": 194182, "clicks": 1963, "purchases": 11.0, "revenue": 426764, "roas": 2.2}, "03": {"spend": 0, "clicks": 0, "purchases": 0, "revenue": 0, "roas": 0}}}, {"name": "EON_Ventas+_Gral", "spend": 341068, "impressions": 116187, "clicks": 2125, "cpc": 161, "purchases": 13.0, "revenue": 672740, "roas": 1.97, "monthly": {"12": {"spend": 0, "clicks": 0, "purchases": 0, "revenue": 0, "roas": 0}, "01": {"spend": 0, "clicks": 0, "purchases": 0, "revenue": 0, "roas": 0}, "02": {"spend": 256712, "clicks": 1648, "purchases": 11.0, "revenue": 586662, "roas": 2.29}, "03": {"spend": 84356, "clicks": 477, "purchases": 2.0, "revenue": 86078, "roas": 1.02}}}, {"name": "RN2509: Campa\u00f1a Tr\u00e1fico al IG", "spend": 205335, "impressions": 127402, "clicks": 6890, "cpc": 30, "purchases": 0.0, "revenue": 0, "roas": 0.0, "monthly": {"12": {"spend": 140287, "clicks": 4512, "purchases": 0.0, "revenue": 0, "roas": 0.0}, "01": {"spend": 53828, "clicks": 1982, "purchases": 0.0, "revenue": 0, "roas": 0.0}, "02": {"spend": 11220, "clicks": 396, "purchases": 0.0, "revenue": 0, "roas": 0.0}, "03": {"spend": 0, "clicks": 0, "purchases": 0, "revenue": 0, "roas": 0}}}, {"name": "EON_DPA", "spend": 121477, "impressions": 55906, "clicks": 1277, "cpc": 95, "purchases": 5.0, "revenue": 280629, "roas": 2.31, "monthly": {"12": {"spend": 0, "clicks": 0, "purchases": 0, "revenue": 0, "roas": 0}, "01": {"spend": 0, "clicks": 0, "purchases": 0, "revenue": 0, "roas": 0}, "02": {"spend": 69563, "clicks": 579, "purchases": 5.0, "revenue": 280629, "roas": 4.03}, "03": {"spend": 51914, "clicks": 698, "purchases": 0.0, "revenue": 0, "roas": 0.0}}}, {"name": "EON_Conversiones+_CON", "spend": 120111, "impressions": 36085, "clicks": 750, "cpc": 160, "purchases": 4.0, "revenue": 203362, "roas": 1.69, "monthly": {"12": {"spend": 0, "clicks": 0, "purchases": 0, "revenue": 0, "roas": 0}, "01": {"spend": 0, "clicks": 0, "purchases": 0, "revenue": 0, "roas": 0}, "02": {"spend": 105114, "clicks": 686, "purchases": 4.0, "revenue": 203362, "roas": 1.93}, "03": {"spend": 14998, "clicks": 64, "purchases": 0.0, "revenue": 0, "roas": 0.0}}}, {"name": "EON_Trafico_AWA", "spend": 112722, "impressions": 110453, "clicks": 6513, "cpc": 17, "purchases": 0.0, "revenue": 0, "roas": 0.0, "monthly": {"12": {"spend": 0, "clicks": 0, "purchases": 0, "revenue": 0, "roas": 0}, "01": {"spend": 0, "clicks": 0, "purchases": 0, "revenue": 0, "roas": 0}, "02": {"spend": 95819, "clicks": 5841, "purchases": 0.0, "revenue": 0, "roas": 0.0}, "03": {"spend": 16903, "clicks": 672, "purchases": 0.0, "revenue": 0, "roas": 0.0}}}, {"name": "EON_Prospeccion_Sales", "spend": 27478, "impressions": 13562, "clicks": 158, "cpc": 174, "purchases": 0.0, "revenue": 0, "roas": 0.0, "monthly": {"12": {"spend": 0, "clicks": 0, "purchases": 0, "revenue": 0, "roas": 0}, "01": {"spend": 0, "clicks": 0, "purchases": 0, "revenue": 0, "roas": 0}, "02": {"spend": 0, "clicks": 0, "purchases": 0, "revenue": 0, "roas": 0}, "03": {"spend": 27478, "clicks": 158, "purchases": 0.0, "revenue": 0, "roas": 0.0}}}, {"name": "EON_Interaccion_AWA", "spend": 15716, "impressions": 33391, "clicks": 637, "cpc": 25, "purchases": 0.0, "revenue": 0, "roas": 0.0, "monthly": {"12": {"spend": 0, "clicks": 0, "purchases": 0, "revenue": 0, "roas": 0}, "01": {"spend": 0, "clicks": 0, "purchases": 0, "revenue": 0, "roas": 0}, "02": {"spend": 7565, "clicks": 543, "purchases": 0.0, "revenue": 0, "roas": 0.0}, "03": {"spend": 8151, "clicks": 94, "purchases": 0.0, "revenue": 0, "roas": 0.0}}}, {"name": "EON_VisitasIG", "spend": 7034, "impressions": 5420, "clicks": 183, "cpc": 38, "purchases": 0.0, "revenue": 0, "roas": 0.0, "monthly": {"12": {"spend": 0, "clicks": 0, "purchases": 0, "revenue": 0, "roas": 0}, "01": {"spend": 0, "clicks": 0, "purchases": 0, "revenue": 0, "roas": 0}, "02": {"spend": 0, "clicks": 0, "purchases": 0, "revenue": 0, "roas": 0}, "03": {"spend": 7034, "clicks": 183, "purchases": 0.0, "revenue": 0, "roas": 0.0}}}];
+const roasEvolution = {"EON_LAL_Compras": [{"month": "Dic 2025", "roas": 2.67}, {"month": "Ene 2026", "roas": 2.21}, {"month": "Feb 2026", "roas": 2.2}, {"month": "Mar 2026", "roas": 0}], "EON_Ventas+_Gral": [{"month": "Dic 2025", "roas": 0}, {"month": "Ene 2026", "roas": 0}, {"month": "Feb 2026", "roas": 2.29}, {"month": "Mar 2026", "roas": 1.02}], "RN2509: Campa\u00f1a Tr\u00e1fico al IG": [{"month": "Dic 2025", "roas": 0.0}, {"month": "Ene 2026", "roas": 0.0}, {"month": "Feb 2026", "roas": 0.0}, {"month": "Mar 2026", "roas": 0}], "EON_DPA": [{"month": "Dic 2025", "roas": 0}, {"month": "Ene 2026", "roas": 0}, {"month": "Feb 2026", "roas": 4.03}, {"month": "Mar 2026", "roas": 0.0}], "EON_Conversiones+_CON": [{"month": "Dic 2025", "roas": 0}, {"month": "Ene 2026", "roas": 0}, {"month": "Feb 2026", "roas": 1.93}, {"month": "Mar 2026", "roas": 0.0}], "EON_Trafico_AWA": [{"month": "Dic 2025", "roas": 0}, {"month": "Ene 2026", "roas": 0}, {"month": "Feb 2026", "roas": 0.0}, {"month": "Mar 2026", "roas": 0.0}]};
+const adsetTop10 = [{"name": "P\u00fablico Similar 10%  Escritura y Dibujo Campa\u00f1a Producto", "campaign": "EON_LAL_Compras", "spend": 897268.2400000003, "impressions": 257681.0, "clicks": 8055.0, "cpc": 111.3927051520795, "ctr": 3.1259580644284988}, {"name": "AllOpen", "campaign": "EON_Ventas+_Gral", "spend": 307020.09, "impressions": 105516.0, "clicks": 1863.0, "cpc": 164.79876006441225, "ctr": 1.7656090071647903}, {"name": "P\u00fablico Similar 10%", "campaign": "RN2509: Campa\u00f1a Tr\u00e1fico al IG", "spend": 205334.74000000008, "impressions": 127402.0, "clicks": 6890.0, "cpc": 29.801849056603785, "ctr": 5.408078366116702}, {"name": "P\u00fablico Similar 10%  Marcadores Sketch", "campaign": "EON_LAL_Compras", "spend": 166298.13999999998, "impressions": 41563.0, "clicks": 1391.0, "cpc": 119.55294033069733, "ctr": 3.3467266559199285}, {"name": "VSW", "campaign": "EON_Conversiones+_CON", "spend": 108577.1, "impressions": 31677.0, "clicks": 690.0, "cpc": 157.358115942029, "ctr": 2.1782365754332798}, {"name": "Intereses SKYCOLOR", "campaign": "EON_Trafico_AWA", "spend": 77088.99999999999, "impressions": 65982.0, "clicks": 4706.0, "cpc": 16.381002974925625, "ctr": 7.132248188900004}, {"name": "P\u00fablico Similar 10%  Navidad", "campaign": "EON_LAL_Compras", "spend": 71926.89, "impressions": 28662.0, "clicks": 713.0, "cpc": 100.87922861150071, "ctr": 2.4876142627869653}, {"name": "Catalogo_AllProducts", "campaign": "EON_DPA", "spend": 71555.8, "impressions": 31329.0, "clicks": 695.0, "cpc": 102.9579856115108, "ctr": 2.218391905263494}, {"name": "Catalogo_Margarita", "campaign": "EON_DPA", "spend": 41373.87, "impressions": 22028.0, "clicks": 521.0, "cpc": 79.41241842610366, "ctr": 2.3651715997820952}, {"name": "LAL _Visitantes+Seguidores", "campaign": "EON_Trafico_AWA", "spend": 35632.72, "impressions": 44471.0, "clicks": 1807.0, "cpc": 19.719269507470948, "ctr": 4.063322165006409}];
+const adsetAll = [{"name": "P\u00fablico Similar 10%  Escritura y Dibujo Campa\u00f1a Producto", "campaign": "EON_LAL_Compras", "spend": 897268.2400000003, "impressions": 257681.0, "clicks": 8055.0, "cpc": 111.3927051520795, "ctr": 3.1259580644284988}, {"name": "AllOpen", "campaign": "EON_Ventas+_Gral", "spend": 307020.09, "impressions": 105516.0, "clicks": 1863.0, "cpc": 164.79876006441225, "ctr": 1.7656090071647903}, {"name": "P\u00fablico Similar 10%", "campaign": "RN2509: Campa\u00f1a Tr\u00e1fico al IG", "spend": 205334.74000000008, "impressions": 127402.0, "clicks": 6890.0, "cpc": 29.801849056603785, "ctr": 5.408078366116702}, {"name": "P\u00fablico Similar 10%  Marcadores Sketch", "campaign": "EON_LAL_Compras", "spend": 166298.13999999998, "impressions": 41563.0, "clicks": 1391.0, "cpc": 119.55294033069733, "ctr": 3.3467266559199285}, {"name": "VSW", "campaign": "EON_Conversiones+_CON", "spend": 108577.1, "impressions": 31677.0, "clicks": 690.0, "cpc": 157.358115942029, "ctr": 2.1782365754332798}, {"name": "Intereses SKYCOLOR", "campaign": "EON_Trafico_AWA", "spend": 77088.99999999999, "impressions": 65982.0, "clicks": 4706.0, "cpc": 16.381002974925625, "ctr": 7.132248188900004}, {"name": "P\u00fablico Similar 10%  Navidad", "campaign": "EON_LAL_Compras", "spend": 71926.89, "impressions": 28662.0, "clicks": 713.0, "cpc": 100.87922861150071, "ctr": 2.4876142627869653}, {"name": "Catalogo_AllProducts", "campaign": "EON_DPA", "spend": 71555.8, "impressions": 31329.0, "clicks": 695.0, "cpc": 102.9579856115108, "ctr": 2.218391905263494}, {"name": "Catalogo_Margarita", "campaign": "EON_DPA", "spend": 41373.87, "impressions": 22028.0, "clicks": 521.0, "cpc": 79.41241842610366, "ctr": 2.3651715997820952}, {"name": "LAL _Visitantes+Seguidores", "campaign": "EON_Trafico_AWA", "spend": 35632.72, "impressions": 44471.0, "clicks": 1807.0, "cpc": 19.719269507470948, "ctr": 4.063322165006409}, {"name": "Target_Padres", "campaign": "EON_Ventas+_Gral", "spend": 22915.030000000002, "impressions": 6410.0, "clicks": 138.0, "cpc": 166.05094202898553, "ctr": 2.152886115444618}, {"name": "LAL _Purchase", "campaign": "EON_Prospeccion_Sales", "spend": 21316.16, "impressions": 13110.0, "clicks": 153.0, "cpc": 139.3213071895425, "ctr": 1.1670480549199085}, {"name": "Catalogo_VueltaalCole", "campaign": "EON_DPA", "spend": 8547.39, "impressions": 2549.0, "clicks": 61.0, "cpc": 140.1211475409836, "ctr": 2.39309533150255}, {"name": "LAL 2% - Reels&Stories", "campaign": "EON_Interaccion_AWA", "spend": 8150.86, "impressions": 16631.0, "clicks": 94.0, "cpc": 86.71127659574468, "ctr": 0.565209548433648}, {"name": "LAL 2% - Interacci\u00f3n", "campaign": "EON_Interaccion_AWA", "spend": 7565.27, "impressions": 16760.0, "clicks": 543.0, "cpc": 13.932357274401474, "ctr": 3.2398568019093075}, {"name": "IG+Vertical", "campaign": "EON_VisitasIG", "spend": 7034.2, "impressions": 5420.0, "clicks": 183.0, "cpc": 38.43825136612022, "ctr": 3.3763837638376386}, {"name": "Intereses SKYCOLOR", "campaign": "EON_Prospeccion_Sales", "spend": 6162.01, "impressions": 452.0, "clicks": 5.0, "cpc": 1232.402, "ctr": 1.1061946902654867}, {"name": "IG_Followers", "campaign": "EON_Conversiones+_CON", "spend": 6021.879999999999, "impressions": 2864.0, "clicks": 35.0, "cpc": 172.05371428571425, "ctr": 1.2220670391061452}, {"name": "Open - Vertical", "campaign": "EON_Ventas+_Gral", "spend": 5597.7699999999995, "impressions": 1759.0, "clicks": 69.0, "cpc": 81.12710144927536, "ctr": 3.922683342808414}, {"name": "Open - Feed", "campaign": "EON_Ventas+_Gral", "spend": 5534.91, "impressions": 2502.0, "clicks": 55.0, "cpc": 100.63472727272728, "ctr": 2.1982414068745006}, {"name": "ATC_30dias", "campaign": "EON_Conversiones+_CON", "spend": 5512.43, "impressions": 1544.0, "clicks": 25.0, "cpc": 220.49720000000002, "ctr": 1.6191709844559583}];
+const insightsData = [{"type": "positive", "title": "Mejor ROAS: EON_LAL_Compras", "desc": "Logra un ROAS de 2.44x con una inversi\u00f3n de $1.1M y revenue de $2.8M.", "action": "Considerar aumentar presupuesto en esta campa\u00f1a."}, {"type": "negative", "title": "ROAS bajo: RN2509: Campa\u00f1a Tr\u00e1fico al IG", "desc": "ROAS de 0.00x con inversi\u00f3n de $205.3K. No recupera la inversi\u00f3n.", "action": "Evaluar pausar o reestructurar esta campa\u00f1a."}, {"type": "warning", "title": "Cuello de botella: View Content \u2192 Add to Cart", "desc": "Solo el 21.2% de quienes ven contenido agregan al carrito.", "action": "Optimizar p\u00e1ginas de producto, precios y CTAs."}, {"type": "warning", "title": "Cuello de botella: Add to Cart \u2192 Checkout", "desc": "Solo el 15.7% de quienes agregan al carrito inician checkout.", "action": "Revisar proceso de checkout, costos de env\u00edo y opciones de pago."}, {"type": "positive", "title": "Canal principal: Direct", "desc": "Genera $3.5M (35.0% del total) con 72.0 compras.", "action": "Mantener estrategia en este canal."}, {"type": "warning", "title": "Comparaci\u00f3n Mobile vs Desktop", "desc": "Mobile: CVR 0.76% (25,446 sesiones). Desktop: CVR 1.01% (3,271 sesiones).", "action": "Desktop convierte mejor - optimizar experiencia mobile."}, {"type": "positive", "title": "Tendencia mensual: Ene \u2192 Feb", "desc": "Revenue aument\u00f3 75.5% de $1.7M a $3.0M.", "action": "Tendencia favorable, mantener estrategia."}, {"type": "warning", "title": "Eficiencia Paid Social", "desc": "Paid Social tiene CVR de 0.08% vs promedio general de 0.78%.", "action": "CVR de Paid Social est\u00e1 por debajo del promedio. Revisar targeting y creativos."}];
+
+const COLORS = ['#1877f2','#22c55e','#f59e0b','#ef4444','#8b5cf6','#06b6d4','#ec4899','#f97316','#6366f1','#14b8a6'];
+const fmtARS = v => v >= 1e6 ? '$'+(v/1e6).toFixed(1)+'M' : v >= 1e3 ? '$'+(v/1e3).toFixed(1)+'K' : '$'+Math.round(v);
+
+// ─── Tab System ───
+function showTab(id, btn) {
+  document.querySelectorAll('.tc').forEach(t => t.classList.remove('on'));
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('on'));
+  document.getElementById('tab-'+id).classList.add('on');
+  btn.classList.add('on');
+}
+
+// ─── Overview Charts ───
+// Spend vs Revenue
+new Chart(document.getElementById('ch-spend-rev'), {
+  type: 'bar',
+  data: {
+    labels: spendRevData.map(d => d.month),
+    datasets: [
+      {label:'Inversi\u00f3n Meta',data:spendRevData.map(d=>d.spend),backgroundColor:'#ef444480',borderColor:'#ef4444',borderWidth:1,yAxisID:'y',order:2},
+      {label:'Ingresos GA4',data:spendRevData.map(d=>d.revenue),backgroundColor:'#22c55e80',borderColor:'#22c55e',borderWidth:1,yAxisID:'y',order:2},
+      {label:'Ratio Inv/Rev %',data:spendRevData.map(d=>d.ratio),type:'line',borderColor:'#1877f2',backgroundColor:'#1877f220',yAxisID:'y1',pointRadius:4,tension:.3,order:1}
+    ]
+  },
+  options: {
+    responsive:true,maintainAspectRatio:false,
+    scales: {
+      y:{beginAtZero:true,ticks:{callback:v=>fmtARS(v)}},
+      y1:{position:'right',beginAtZero:true,grid:{display:false},ticks:{callback:v=>v+'%'}}
+    },
+    plugins:{tooltip:{callbacks:{label:ctx=>ctx.dataset.yAxisID==='y1'?ctx.parsed.y+'%':fmtARS(ctx.parsed.y)}}}
+  }
+});
+
+// Sessions vs Purchases
+new Chart(document.getElementById('ch-sess-purch'), {
+  type: 'bar',
+  data: {
+    labels: sessPurchData.map(d => d.month),
+    datasets: [
+      {label:'Sesiones',data:sessPurchData.map(d=>d.sessions),backgroundColor:'#3b82f680',borderColor:'#3b82f6',borderWidth:1,yAxisID:'y'},
+      {label:'Compras',data:sessPurchData.map(d=>d.purchases),backgroundColor:'#22c55e80',borderColor:'#22c55e',borderWidth:1,yAxisID:'y'},
+      {label:'CVR %',data:sessPurchData.map(d=>d.cvr),type:'line',borderColor:'#f59e0b',yAxisID:'y1',pointRadius:4,tension:.3}
+    ]
+  },
+  options: {
+    responsive:true,maintainAspectRatio:false,
+    scales: {
+      y:{beginAtZero:true},
+      y1:{position:'right',beginAtZero:true,grid:{display:false},ticks:{callback:v=>v+'%'}}
+    }
+  }
+});
+
+// Device chart
+new Chart(document.getElementById('ch-device'), {
+  type: 'bar',
+  data: {
+    labels: deviceData.map(d => d.device),
+    datasets: [
+      {label:'Sesiones',data:deviceData.map(d=>d.sessions),backgroundColor:'#3b82f680',yAxisID:'y'},
+      {label:'Compras',data:deviceData.map(d=>d.purchases),backgroundColor:'#22c55e80',yAxisID:'y'},
+      {label:'CVR %',data:deviceData.map(d=>d.cvr),type:'line',borderColor:'#f59e0b',yAxisID:'y1',pointRadius:6,tension:.3}
+    ]
+  },
+  options: {
+    responsive:true,maintainAspectRatio:false,
+    scales: {
+      y:{beginAtZero:true},
+      y1:{position:'right',beginAtZero:true,grid:{display:false},ticks:{callback:v=>v+'%'}}
+    }
+  }
+});
+
+// Channel Pie
+new Chart(document.getElementById('ch-channel-pie'), {
+  type: 'doughnut',
+  data: {
+    labels: channelPieData.map(d => d.name),
+    datasets: [{data:channelPieData.map(d=>d.revenue),backgroundColor:COLORS}]
+  },
+  options: {
+    responsive:true,maintainAspectRatio:false,
+    plugins:{legend:{position:'right',labels:{font:{size:11}}},tooltip:{callbacks:{label:ctx=>ctx.label+': '+fmtARS(ctx.parsed)}}}
+  }
+});
+
+// ─── Funnel Charts ───
+new Chart(document.getElementById('ch-funnel-vol'), {
+  type: 'bar',
+  data: {
+    labels: monthlyFunnel.map(d => d.month),
+    datasets: [
+      {label:'LPV',data:monthlyFunnel.map(d=>d.lpv),backgroundColor:'#3b82f680'},
+      {label:'View Content',data:monthlyFunnel.map(d=>d.vc),backgroundColor:'#6366f180'},
+      {label:'Add to Cart',data:monthlyFunnel.map(d=>d.atc),backgroundColor:'#f59e0b80'},
+      {label:'Init Checkout',data:monthlyFunnel.map(d=>d.ic),backgroundColor:'#ef444480'},
+      {label:'Purchase',data:monthlyFunnel.map(d=>d.purch),backgroundColor:'#22c55e80'}
+    ]
+  },
+  options: {responsive:true,maintainAspectRatio:false,scales:{y:{beginAtZero:true}}}
+});
+
+// Funnel rates
+const fRates = monthlyFunnel.map(d => ({
+  month: d.month,
+  lpv_vc: d.lpv ? Math.round(d.vc/d.lpv*1000)/10 : 0,
+  vc_atc: d.vc ? Math.round(d.atc/d.vc*1000)/10 : 0,
+  atc_ic: d.atc ? Math.round(d.ic/d.atc*1000)/10 : 0,
+  ic_p: d.ic ? Math.round(d.purch/d.ic*1000)/10 : 0
+}));
+new Chart(document.getElementById('ch-funnel-rates'), {
+  type: 'line',
+  data: {
+    labels: fRates.map(d => d.month),
+    datasets: [
+      {label:'LPV\u2192VC',data:fRates.map(d=>d.lpv_vc),borderColor:'#3b82f6',tension:.3,pointRadius:4},
+      {label:'VC\u2192ATC',data:fRates.map(d=>d.vc_atc),borderColor:'#6366f1',tension:.3,pointRadius:4},
+      {label:'ATC\u2192IC',data:fRates.map(d=>d.atc_ic),borderColor:'#f59e0b',tension:.3,pointRadius:4},
+      {label:'IC\u2192Purch',data:fRates.map(d=>d.ic_p),borderColor:'#22c55e',tension:.3,pointRadius:4}
+    ]
+  },
+  options: {responsive:true,maintainAspectRatio:false,scales:{y:{beginAtZero:true,ticks:{callback:v=>v+'%'}}}}
+});
+
+// ─── Channel Tab ───
+function renderChannelTable(filter) {
+  const tbody = document.getElementById('ch-tbody');
+  tbody.innerHTML = '';
+  channelTable.forEach(ch => {
+    let s,e,p,r;
+    if (filter === 'all') {
+      s=ch.sessions; e=ch.engaged; p=ch.purchases; r=ch.revenue;
+    } else {
+      const m = ch.monthly[filter] || {};
+      s=m.sessions||0; e=m.engaged||0; p=m.purchases||0; r=m.revenue||0;
+    }
+    if (s === 0 && p === 0) return;
+    const cvr = s ? (p/s*100).toFixed(2) : '0.00';
+    tbody.innerHTML += `<tr><td>${ch.name}</td><td class="num">${s.toLocaleString()}</td><td class="num">${e.toLocaleString()}</td><td class="num">${p}</td><td class="num">${fmtARS(r)}</td><td class="num">${cvr}%</td></tr>`;
+  });
+}
+function filterChannels(m, btn) {
+  document.querySelectorAll('#ch-month-filter button').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on');
+  renderChannelTable(m);
+}
+renderChannelTable('all');
+
+// Channel evolution charts - BAR charts
+const chLabels = ['Dic 2025','Ene 2026','Feb 2026','Mar 2026'];
+const topChannels = Object.keys(channelMonthly).slice(0,6);
+
+new Chart(document.getElementById('ch-channel-sessions'), {
+  type: 'bar',
+  data: {
+    labels: chLabels,
+    datasets: topChannels.map((ch,i) => ({
+      label: ch,
+      data: channelMonthly[ch].map(d => d.sessions),
+      backgroundColor: COLORS[i]+'80',
+      borderColor: COLORS[i],
+      borderWidth: 1
+    }))
+  },
+  options: {responsive:true,maintainAspectRatio:false,scales:{y:{beginAtZero:true}}}
+});
+
+new Chart(document.getElementById('ch-channel-revenue'), {
+  type: 'bar',
+  data: {
+    labels: chLabels,
+    datasets: topChannels.map((ch,i) => ({
+      label: ch,
+      data: channelMonthly[ch].map(d => d.revenue),
+      backgroundColor: COLORS[i]+'80',
+      borderColor: COLORS[i],
+      borderWidth: 1
+    }))
+  },
+  options: {responsive:true,maintainAspectRatio:false,scales:{y:{beginAtZero:true,ticks:{callback:v=>fmtARS(v)}}}}
+});
+
+// ─── Campaign Tab ───
+function renderCampaignTable(filter) {
+  const tbody = document.getElementById('camp-tbody');
+  tbody.innerHTML = '';
+  campaignTable.forEach(c => {
+    let sp,imp,cl,cpc,p,r,roas;
+    if (filter === 'all') {
+      sp=c.spend;imp=c.impressions;cl=c.clicks;cpc=c.cpc;p=c.purchases;r=c.revenue;roas=c.roas;
+    } else {
+      const m = c.monthly[filter] || {};
+      sp=m.spend||0;cl=m.clicks||0;p=m.purchases||0;r=m.revenue||0;
+      imp=0; // not tracked monthly in this build
+      cpc=cl?Math.round(sp/cl):0;
+      roas=sp?Math.round(r/sp*100)/100:0;
+    }
+    if (sp === 0) return;
+    const roasClass = roas >= 3 ? 'good' : roas >= 1 ? 'warn' : 'bad';
+    tbody.innerHTML += `<tr><td>${c.name}</td><td class="num">${fmtARS(sp)}</td><td class="num">${imp?imp.toLocaleString():'-'}</td><td class="num">${cl.toLocaleString()}</td><td class="num">${fmtARS(cpc)}</td><td class="num">${p}</td><td class="num">${fmtARS(r)}</td><td class="num ${roasClass}">${roas.toFixed(2)}x</td></tr>`;
+  });
+}
+function filterCampaigns(m, btn) {
+  document.querySelectorAll('#camp-month-filter button').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on');
+  renderCampaignTable(m);
+}
+renderCampaignTable('all');
+
+// ROAS evolution line chart
+const roasLabels = ['Dic 2025','Ene 2026','Feb 2026','Mar 2026'];
+const roasCamps = Object.keys(roasEvolution);
+new Chart(document.getElementById('ch-roas-evolution'), {
+  type: 'line',
+  data: {
+    labels: roasLabels,
+    datasets: roasCamps.map((c,i) => ({
+      label: c.length > 25 ? c.substring(0,25)+'...' : c,
+      data: roasEvolution[c].map(d => d.roas),
+      borderColor: COLORS[i],
+      tension: .3,
+      pointRadius: 4
+    }))
+  },
+  options: {
+    responsive:true,maintainAspectRatio:false,
+    scales:{y:{beginAtZero:true,ticks:{callback:v=>v+'x'}}},
+    plugins:{legend:{labels:{font:{size:10}}}}
+  }
+});
+
+// ─── Ad Sets Tab ───
+// Top 10 by spend
+new Chart(document.getElementById('ch-adset-spend'), {
+  type: 'bar',
+  data: {
+    labels: adsetTop10.map(d => d.name.length > 22 ? d.name.substring(0,22)+'...' : d.name),
+    datasets: [{label:'Inversi\u00f3n',data:adsetTop10.map(d=>d.spend),backgroundColor:COLORS.map(c=>c+'80')}]
+  },
+  options: {
+    responsive:true,maintainAspectRatio:false,indexAxis:'y',
+    scales:{x:{beginAtZero:true,ticks:{callback:v=>fmtARS(v)}}},
+    plugins:{legend:{display:false}}
+  }
+});
+
+// Top 10 by CTR
+const adsetByCtr = [...adsetTop10].sort((a,b) => b.ctr - a.ctr);
+new Chart(document.getElementById('ch-adset-ctr'), {
+  type: 'bar',
+  data: {
+    labels: adsetByCtr.map(d => d.name.length > 22 ? d.name.substring(0,22)+'...' : d.name),
+    datasets: [{label:'CTR %',data:adsetByCtr.map(d=>d.ctr),backgroundColor:COLORS.map(c=>c+'80')}]
+  },
+  options: {
+    responsive:true,maintainAspectRatio:false,indexAxis:'y',
+    scales:{x:{beginAtZero:true,ticks:{callback:v=>v+'%'}}},
+    plugins:{legend:{display:false}}
+  }
+});
+
+// Adset table
+const adsetTbody = document.getElementById('adset-tbody');
+adsetAll.forEach(a => {
+  adsetTbody.innerHTML += `<tr><td>${a.name}</td><td>${a.campaign}</td><td class="num">${fmtARS(a.spend)}</td><td class="num">${a.impressions.toLocaleString()}</td><td class="num">${a.clicks.toLocaleString()}</td><td class="num">${fmtARS(a.cpc)}</td><td class="num">${a.ctr.toFixed(2)}%</td></tr>`;
+});
+
+// ─── Insights Tab ───
+const insContainer = document.getElementById('insights-container');
+insightsData.forEach(ins => {
+  insContainer.innerHTML += `<div class="ins ${ins.type}"><div class="it">${ins.title}</div><div class="id">${ins.desc}</div><div class="ia">&rarr; ${ins.action}</div></div>`;
+});
+</script>
+</body>
+</html>
