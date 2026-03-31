@@ -410,7 +410,7 @@ function renderIG(){
   let rh='<table><thead><tr><th>#</th><th>Fecha</th><th>Reel</th><th class="num">Views</th><th class="num">Eng%</th><th class="num">Likes</th><th class="num">Saves</th><th class="num">Shares</th></tr></thead><tbody>';
   ig.top_reels.forEach((r,i)=>{
     const cls=r.engagement>=5?'good':r.engagement>=3?'warn':'bad';
-    rh+=\`<tr><td>\${i+1}</td><td>\${r.date}</td><td><a href="\${r.url}" target="_blank" style="color:var(--accent);text-decoration:none">\${r.title.substring(0,70)}\${r.title.length>70?'...':''}</a></td><td class="num">\${fmt(r.views,'#')}</td><td class="num \${cls}">\${r.engagement}%</td><td class="num">\${r.likes}</td><td class="num">\${r.saves}</td><td class="num">\${r.shares}</td></tr>\`;
+    rh+=`<tr><td>${i+1}</td><td>${r.date}</td><td><a href="${r.url}" target="_blank" style="color:var(--accent);text-decoration:none">${r.title.substring(0,70)}${r.title.length>70?'...':''}</a></td><td class="num">${fmt(r.views,'#')}</td><td class="num ${cls}">${r.engagement}%</td><td class="num">${r.likes}</td><td class="num">${r.saves}</td><td class="num">${r.shares}</td></tr>`;
   });
   rh+='</tbody></table>';document.getElementById('tbl-ig-reels').innerHTML=rh;
 
@@ -418,29 +418,29 @@ function renderIG(){
   let ph='<table><thead><tr><th>#</th><th>Fecha</th><th>Post</th><th class="num">Reach</th><th class="num">Eng%</th><th class="num">Likes</th><th class="num">Saves</th><th class="num">Shares</th></tr></thead><tbody>';
   ig.top_posts.forEach((p,i)=>{
     const cls=p.engagement>=5?'good':p.engagement>=3?'warn':'bad';
-    ph+=\`<tr><td>\${i+1}</td><td>\${p.date}</td><td><a href="\${p.url}" target="_blank" style="color:var(--accent);text-decoration:none">\${p.content.substring(0,70)}\${p.content.length>70?'...':''}</a></td><td class="num">\${fmt(p.reach,'#')}</td><td class="num \${cls}">\${p.engagement}%</td><td class="num">\${p.likes}</td><td class="num">\${p.saves}</td><td class="num">\${p.shares}</td></tr>\`;
+    ph+=`<tr><td>${i+1}</td><td>${p.date}</td><td><a href="${p.url}" target="_blank" style="color:var(--accent);text-decoration:none">${p.content.substring(0,70)}${p.content.length>70?'...':''}</a></td><td class="num">${fmt(p.reach,'#')}</td><td class="num ${cls}">${p.engagement}%</td><td class="num">${p.likes}</td><td class="num">${p.saves}</td><td class="num">${p.shares}</td></tr>`;
   });
   ph+='</tbody></table>';document.getElementById('tbl-ig-posts').innerHTML=ph;
 
   // What works vs what doesn't
-  document.getElementById('ig-works').innerHTML+=\`
+  document.getElementById('ig-works').innerHTML+=`
     <div class="ig-card ok"><strong>L&iacute;nea Margarita</strong>Top 3 posts + reel #1 org&aacute;nico. Engagement 8-11%. El hero product indiscutido.</div>
     <div class="ig-card ok"><strong>Tutoriales &amp; ASMR</strong>Saves altos (106+ en ASMR, 18+ en tutoriales). Contenido &uacute;til que el algoritmo favorece.</div>
     <div class="ig-card ok"><strong>Carruseles de producto con contexto</strong>Los posts que muestran combos con storytelling (universidad, back to school) superan 4% eng.</div>
     <div class="ig-card ok"><strong>Stories en temporada alta</strong>Feb tuvo 845 reach/story vs 250-400 promedio. La audiencia se activa en vuelta al cole.</div>
-  \`;
+  `;
 
-  document.getElementById('ig-fails').innerHTML+=\`
+  document.getElementById('ig-fails').innerHTML+=`
     <div class="ig-card bad"><strong>Posts gen&eacute;ricos sin hook</strong>"Volvemos con todo", "combo gatito" = 1-2% eng. Bajan el score de la cuenta.</div>
     <div class="ig-card bad"><strong>Reels de producto sin storytelling</strong>Mediana de views 2.2K. Sin hook en primeros 3 seg, el reel muere.</div>
     <div class="ig-card bad"><strong>Sorteos como estrategia de crecimiento</strong>El sorteo Catu (Feb) infla m&eacute;tricas pero el engagement post-sorteo no mejora. Seguidores fantasma.</div>
     <div class="ig-card bad"><strong>Volumen de stories sin interacci&oacute;n</strong>50-60 stories/mes pero solo 4-18 replies. No hay polls, preguntas ni CTAs interactivos.</div>
     <div class="ig-card bad"><strong>Cero amplificaci&oacute;n pagada</strong>Los mejores contenidos mueren en 2-3K reach. Un boost m&iacute;nimo los llevar&iacute;a a 50-100K.</div>
-  \`;
+  `;
 
   // Insights
   let ih='';
-  ig.insights.forEach(ins=>{ih+=\`<div class="ins \${ins.type}"><div class="it">\${ins.title}</div><div class="id">\${ins.detail}</div><div class="ia">\${ins.action}</div></div>\`});
+  ig.insights.forEach(ins=>{ih+=`<div class="ins ${ins.type}"><div class="it">${ins.title}</div><div class="id">${ins.detail}</div><div class="ia">${ins.action}</div></div>`});
   document.getElementById('ig-insights').innerHTML=ih;
 }
 
